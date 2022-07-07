@@ -10,24 +10,42 @@ class Question(models.Model):
     content = models.TextField()
     create_date = models.DateTimeField()
 
-def usernser(infoQuery):
+def userinsert(infoQuery):
     conn = pymysql.connect(host='localhost', user='master', password='master', db='goorm', charset='utf8')
     cur = conn.cursor()
-    sql = "insert into User (userId) VALUES (%s)"
-    res = cur.execute(sql,infoQuery)
+    sql = f"insert into User (userId) VALUES ('{infoQuery}')"
+    res = cur.execute(sql)
     conn.commit()
     conn.close()
-
     return res
 
-def login(infoQuery):
+def selectUser(infoQuery):
     conn = pymysql.connect(host='localhost', user='master', password='master', db='goorm', charset='utf8')
     cur = conn.cursor()
     sql = "select * from User where userId = %s"
+    cur.execute(sql,infoQuery)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res
+
+def selectSeat(floor,name,time):
+    conn = pymysql.connect(host='localhost', user='master', password='master', db='goorm', charset='utf8')
+    cur = conn.cursor()
+    sql = f"select id from Seat where floor = '{floor}' and name = '{name}' and time = '{time}';"
+    cur.execute(sql)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res
+
+def insertReservation(infoQuery):
+    conn = pymysql.connect(host='localhost', user='master', password='master', db='goorm', charset='utf8')
+    cur = conn.cursor()
+    sql = "insert into reservation (userId, seatId, userNum, status) VALUES (%s,%s,%s,%s);"
     res = cur.execute(sql,infoQuery)
     conn.commit()
     conn.close()
-
     return res
 
 def delete(infoQuery):

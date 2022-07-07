@@ -19,14 +19,37 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 
-
-# Create your views here.
-# def index(request):
-#     return HttpResponse("replace main")
 @method_decorator(csrf_exempt,name='dispatch')
 def index(request):
     userId = request.session.get('userId')
     return HttpResponse(userId)
+
+def signup(userId):
+    res = models.userinsert(userId)
+    return 0
+
+@method_decorator(csrf_exempt,name='dispatch')
+def logIn(requset):
+    if requset.method == 'POST':
+        data = json.loads(requset.body)
+        userId = data['userId']
+
+        # 크롤러 성공 설정
+        # result = crawler.check_login(userId,password)
+        result = 1
+
+        if result==1:
+            res = models.selectUser(userId)
+            if (res==None):
+                signup(userId)
+            requset.session['userId'] = userId
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+        elif result==0: return JsonResponse({'message':'WRONG_User'},status=300)
+    elif requset.method == 'PATCH':
+        try:
+            del requset.session['userId']
+            return JsonResponse({'message':'SUCCESS'},status=200)
+        except: return JsonResponse({'message':'WRONG_User'},status=300)
 
 @method_decorator(csrf_exempt, name='dispatch')
 def delete(request):
@@ -44,40 +67,21 @@ def delete(request):
         return JsonResponse({'message': 'DBERR'}, status=400)
 
 @method_decorator(csrf_exempt,name='dispatch')
-def signup(requset):
-    data = json.loads(requset.body)
-    userId = data['userId']
-    query=(userId)
-    try:
-        models.usernser(query)
-        return JsonResponse({'message':'SUCCESS'},status=200)
-    except:
-        return JsonResponse({'message':'DBERR'},status=400)
-
-@method_decorator(csrf_exempt,name='dispatch')
-def login(request):
-    data = json.loads(request.body)
-    userId = data['userId']
-    query = (userId)
-    try:
-        res = models.login(query)
-        if res == 0:
-            return JsonResponse({'message': 'Wrong User'}, status=300)
-        else:
-            request.session['userId'] = userId
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
-    except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
-
-    #     user = authenticate(request, userId=userId, password=password)
-    #     password_crypt = bcrypt.hashpw(password, bcrypt.gensalt())
-    #     password_crypt = password_crypt.decode('utf-8')
-    #     query = (userId, password_crypt)
-    #     try:
-    #         models.login(query)
-    #         if user is not None:
-    #             login(request, user)
-    #             return JsonResponse({'message': 'SUCCESS'}, status=200)
-    #     except:
-    #         return JsonResponse({'message': 'DBERR'}, status=400)
-
+def reservation(request):
+    userId = request.session.get('userId')
+    if userId=="None":
+        return JsonResponse({'message':'WRONG_User'},status=300)
+    else:
+        data = json.loads(request.body)
+        floor = data['floor']
+        name = data['name']
+        time = data['time']
+        userNum = data['userNum']
+        try:
+            seat = models.selectSeat(floor,name,time)
+            if (seat!=None):
+                reserveInfoQuery = (userId,seat[0],userNum,"loading")
+                models.insertReservation(reserveInfoQuery)
+                return JsonResponse({'message': 'SUCCESS'}, status=200)
+            else:   return JsonResponse({'message':'DB_ERR'},status=400)
+        except: return JsonResponse({'message':'DB_ERR'},status=400)
