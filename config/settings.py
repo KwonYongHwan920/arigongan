@@ -25,13 +25,16 @@ SECRET_KEY = 'django-insecure-m8r)68+punm$4eazvy-hjjzrrl)7yt3=zu1aj=fi6&5wh#!rnm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+
+
+ALLOWED_HOSTS = ['54.183.139.95']
 
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'django_apscheduler',
     'arigonggan.apps.ArigongganConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -76,14 +79,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-	'default': {
-    	'ENGINE': 'django.db.backends.mysql',
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'goorm',
         'USER': 'master',
         'PASSWORD': 'master',
         'HOST': 'localhost',
         'PORT': '3306',
-     }
+    }
 }
 
 
@@ -108,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'ko-kr'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Seoul'
 
@@ -116,7 +119,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+SCHEDULER_DEFAULT = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -126,12 +129,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-import pymysql
-pymysql.install_as_MySQLdb()
-
-# 로그인 성공후 이동하는 URL
-LOGIN_REDIRECT_URL = '/'
-
-# 로그아웃시 이동하는 URL
-LOGOUT_REDIRECT_URL = '/'

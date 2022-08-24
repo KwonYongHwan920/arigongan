@@ -10,7 +10,10 @@ from django.contrib.auth import views as auth_views
 app_name = 'arigonggan'
 urlpatterns = [
     path('', views.index),
-    path('signUp', views.logIn),
-    path('delete', views.delete),
+    path('logIn', views.logIn),
     path('reservation', views.reservation),
+    path('all', views.seatList),
+    path('delete', views.delete),
+    path('auto-delete', views.autoDelete),
+    path('reservationList', views.userReservation),
 ]
