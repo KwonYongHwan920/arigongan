@@ -15,6 +15,9 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 PASSWORD = "@master123"
+USER = 'master1'
+HOST = 'localhost'
+DATABSE = 'goorm'
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,10 +28,6 @@ SECRET_KEY = 'django-insecure-m8r)68+punm$4eazvy-hjjzrrl)7yt3=zu1aj=fi6&5wh#!rnm
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-
-
-ALLOWED_HOSTS = ['54.183.139.95']
 
 
 
@@ -83,8 +82,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'goorm',
-        'USER': 'master',
-        'PASSWORD': 'master',
+        'USER': 'master1',
+        'PASSWORD': '@master123',
         'HOST': 'localhost',
         'PORT': '3306',
     }

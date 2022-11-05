@@ -1,8 +1,11 @@
 import pymysql
 from config.settings import PASSWORD as DBPWD
+from config.settings import USER as DBUSER
+from config.settings import DATABSE as DB
+from config.settings import HOST as DBHOST
 
 def userInsert(userId):
-    conn = pymysql.connect(host='localhost', user='master', password= DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password= DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "insert into User (userId) VALUES (%s)"
     res = cur.execute(sql,userId)
@@ -11,7 +14,7 @@ def userInsert(userId):
     return res
 
 def selectUser(userId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "select * from User where userId = %s"
     cur.execute(sql,userId)
@@ -21,7 +24,7 @@ def selectUser(userId):
     return res
 
 def retrieveAvailavleSeat(seatInfoQuery):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "select id from Seat where floor = %s and name = %s and bookTime = %s and status='activate';"
     cur.execute(sql,seatInfoQuery)
@@ -31,7 +34,7 @@ def retrieveAvailavleSeat(seatInfoQuery):
     return res
 
 def updateSeatStatus(seatId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Seat set status = 'booked' where id = %s;"
     res = cur.execute(sql,seatId)
@@ -40,7 +43,7 @@ def updateSeatStatus(seatId):
     return res
 
 def insertReservation(reservationQuery):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "insert into Reservation (userId, seatId,  status) VALUES (%s,%s,%s);"
     res = cur.execute(sql,reservationQuery)
@@ -49,7 +52,7 @@ def insertReservation(reservationQuery):
     return res
 
 def retrieveAllSeatStatus():
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "Select name,floor,bookTime,status From Seat;"
     cur.execute(sql)
@@ -62,7 +65,7 @@ def retrieveAllSeatStatus():
     return seatList
 
 def retrieveSeatId(seatInfoQuery):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "select id from Seat where floor = %s and name = %s and bookTime = %s ;"
     cur.execute(sql,seatInfoQuery)
@@ -72,7 +75,7 @@ def retrieveSeatId(seatInfoQuery):
     return res
 
 def retrieveReserveId(ReserveInfoQuery):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "select id from Reservation where userId=%s and seatId=%s and status='booked';"
     cur.execute(sql,ReserveInfoQuery)
@@ -82,7 +85,7 @@ def retrieveReserveId(ReserveInfoQuery):
     return res
 
 def deleteSeatStatus(seatId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Seat set status = 'activate' where id = %s;"
     res = cur.execute(sql,seatId)
@@ -91,7 +94,7 @@ def deleteSeatStatus(seatId):
     return res
 
 def deleteReservation(reservationId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Reservation set status = 'canceled' where id = %s and status = 'booked'"
     sta = cur.execute(sql, reservationId)
@@ -101,7 +104,7 @@ def deleteReservation(reservationId):
     return sta
 
 def autoDelete(reservationId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Reservation set status = 'deleted' where id = %s and status = 'booked'"
     sta = cur.execute(sql, reservationId)
@@ -113,7 +116,7 @@ def autoDelete(reservationId):
 
 
 def retrieveReserv(userId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "Select seatId,status,created_at From Reservation WHERE userId=%s;"
     cur.execute(sql,userId)
@@ -126,7 +129,7 @@ def retrieveReserv(userId):
     return seatList
 
 def retrieveSeatById(seatId):
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "Select name, floor, bookTime From Seat WHERE id=%s;"
     cur.execute(sql,seatId)
@@ -137,7 +140,7 @@ def retrieveSeatById(seatId):
     return res
 
 def updateAllSeatDisable():
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Seat set status = 'disable' where status is not null;"
     cur.execute(sql)
@@ -145,7 +148,7 @@ def updateAllSeatDisable():
     conn.close()
 
 def updateAllSeatActivate():
-    conn = pymysql.connect(host='localhost', user='master', password=DBPWD, db='goorm', charset='utf8')
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
     sql = "update Seat set status = 'activate' where status is not null;"
     cur.execute(sql)
