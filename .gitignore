@@ -2,4 +2,4 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=django
 
 ./config/settings.py
-./arigonggan/migrations
+arigonggan/migrations
