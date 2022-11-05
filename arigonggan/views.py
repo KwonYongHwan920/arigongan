@@ -5,7 +5,6 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from arigonggan import models
-from arigonggan import cralwer
 from django.conf import settings
 import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
