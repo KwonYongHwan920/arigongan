@@ -8,7 +8,8 @@ AYU - goorm
 
 ---
 > modules
-> - django
-> - mysqlclient
-> - pymysql
-> - selenium
+- django
+- mysqlclient
+- pymysql
+- selenium
+- django_apscheduler
