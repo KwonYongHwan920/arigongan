@@ -26,7 +26,7 @@ def selectUser(userId):
 def retrieveAvailavleSeat(seatInfoQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select id from Seat where floor = %s and name = %s and bookTime = %s and status='activate';"
+    sql = "select id from Seat where floor = %s and name = %s and time = %s and status='activate' and timediff(TIMESTAMP(time),now())>0;"
     cur.execute(sql,seatInfoQuery)
     res = cur.fetchone()
     conn.commit()
@@ -45,7 +45,16 @@ def updateSeatStatus(seatId):
 def insertReservation(reservationQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "insert into Reservation (userId, seatId,  status) VALUES (%s,%s,%s);"
+    sql = "insert into reservation (userId, seatId,  status) VALUES (%s,%s,%s);"
+    res = cur.execute(sql,reservationQuery)
+    conn.commit()
+    conn.close()
+    return res
+
+def updateReservation(reservationQuery):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "update reservation set status=%s where status=%s and seatId=%s and userId = %s;"
     res = cur.execute(sql,reservationQuery)
     conn.commit()
     conn.close()
@@ -54,7 +63,7 @@ def insertReservation(reservationQuery):
 def retrieveAllSeatStatus():
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "Select name,floor,bookTime,status From Seat;"
+    sql = "Select name,floor,status From Seat;"
     cur.execute(sql)
     seatList = []
     for row in cur:
@@ -67,9 +76,9 @@ def retrieveAllSeatStatus():
 def retrieveSeatId(seatInfoQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select id from Seat where floor = %s and name = %s and bookTime = %s ;"
+    sql = "select id from Seat where floor = %s and name = %s and time = %s;"
     cur.execute(sql,seatInfoQuery)
-    res = cur.fetchone()
+    res = cur.fetchall()
     conn.commit()
     conn.close()
     return res
@@ -77,7 +86,17 @@ def retrieveSeatId(seatInfoQuery):
 def retrieveReserveId(ReserveInfoQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select id from Reservation where userId=%s and seatId=%s and status='booked';"
+    sql = "select id from Reservation where userId=%s and seatId=%s and status=%s and datediff(now(),created_at)<1;"
+    cur.execute(sql,ReserveInfoQuery)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res
+
+def retrievedeleteId(ReserveInfoQuery):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "select id from Reservation where userId=%s and seatId=%s and status in ('prebooked','deactivation');"
     cur.execute(sql,ReserveInfoQuery)
     res = cur.fetchone()
     conn.commit()
@@ -96,7 +115,7 @@ def deleteSeatStatus(seatId):
 def deleteReservation(reservationId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "update Reservation set status = 'canceled' where id = %s and status = 'booked'"
+    sql = "update Reservation set status = 'delete' where id = %s"
     sta = cur.execute(sql, reservationId)
     conn.commit()
     conn.close()
@@ -106,7 +125,7 @@ def deleteReservation(reservationId):
 def autoDelete(reservationId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "update Reservation set status = 'deleted' where id = %s and status = 'booked'"
+    sql = "update Reservation set status = 'canceled' where id = %s"
     sta = cur.execute(sql, reservationId)
     conn.commit()
     conn.close()
@@ -154,3 +173,13 @@ def updateAllSeatActivate():
     cur.execute(sql)
     conn.commit()
     conn.close()
+
+def checkChangeList(userId):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "select floor,name,time,status from seat where seat.id in(select seatId from Reservation where userId=%s and DATEDIFF(created_at,now())<1);"
+    cur.execute(sql,userId)
+    res = cur.fetchall()
+    conn.commit()
+    conn.close()
+    return res

@@ -15,5 +15,9 @@ urlpatterns = [
     path('all', views.seatList),
     path('delete', views.delete),
     path('auto-delete', views.autoDelete),
-    path('reservationList', views.userReservation),
+    path('user-reservation', views.userReservation),
+    path('disable',views.disableSeat),
+    path('activate',views.activateSeat),
+    path('booked', views.booked),
+    path('reservationList',views.reserveList),
 ]
