@@ -39,17 +39,19 @@ def index(request):
 @method_decorator(csrf_exempt,name='dispatch')
 def logIn(requset):
     if requset.method == 'POST':
-        data = json.loads(requset.body)
-        userId = data['userId']
+        try:
+            data = json.loads(requset.body)
+            userId = data['userId']
 
-        # 로그인 전적이 있는 지 확인
-        res = models.selectUser(userId)
-        if (res==None):
-            # 회원가입
-            signup(userId)
-
-        # session에 userId 추가
-        requset.session['userId'] = userId
+            # 로그인 전적이 있는 지 확인
+            res = models.selectUser(userId)
+            if (res==None):
+                # 회원가입
+                signup(userId)
+            # session에 userId 추가
+            requset.session['userId'] = userId
+        except:
+            return JsonResponse({'message':'DB_ERR'},status=400)
         return JsonResponse({'message': 'SUCCESS'}, status=200)
 
 # (02) signOut api
