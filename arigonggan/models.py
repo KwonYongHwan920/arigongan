@@ -63,7 +63,7 @@ def updateReservation(reservationQuery):
 def retrieveAllSeatStatus():
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "Select name,floor,status From Seat;"
+    sql = "Select name,floor,time,status From Seat;"
     cur.execute(sql)
     seatList = []
     for row in cur:
