@@ -12,10 +12,16 @@ import datetime
 now = datetime.datetime.now()
 import time
 
-@sched.scheduled_job('cron',hour='19', minute = '00', name = 'disable')
-def seatChangeDisable():
-    models.updateAllSeatDisable()
-    print("disable complete")
+for i in range(9,19):
+    @sched.scheduled_job('cron', hour=str(i), minute='00', name='disable')
+    def seatChangeDisable():
+        if(len(str(i))<2):
+            time = "0"+str(i)+":00:00"
+        else:
+            time = str(i) + ":00:00"
+        models.updateSeatDisable(time)
+        print("disable complete")
+
 
 sched.start()
 
