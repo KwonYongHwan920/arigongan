@@ -217,7 +217,8 @@ def autoDelete(request):
     name = data['name']
     time = data['time']
     try:
-        seat = models.retrieveSeatId(floor, name, time)
+        queryInfo = (floor, name, time)
+        seat = models.retrieveSeatId(queryInfo)
         ReserveInfoQuery = (userId, seat[0])
         reserveId = models.retrievedeleteId(ReserveInfoQuery)
         if reserveId == None:

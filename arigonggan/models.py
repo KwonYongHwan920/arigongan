@@ -76,7 +76,7 @@ def retrieveAllSeatStatus():
 def retrieveSeatId(seatInfoQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select id from Seat where floor = %s and name = %s and time = %s;"
+    sql = "select id from Seat where floor = %s and name = %s and Seat.time = %s;"
     cur.execute(sql,seatInfoQuery)
     res = cur.fetchall()
     conn.commit()
