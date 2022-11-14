@@ -144,32 +144,37 @@ def reservation(request):
                     models.updateSeatStatus(seat[0])
                     reservationQuery = (userId,seat[0],"deactivation")
                     models.insertReservation(reservationQuery)
-                    if(now.minute>=50):
+                    if(int(time[0:2])==now.hour):
                         infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                         models.updateReservation(infoQuery)
-
-                        @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=time[0:2],
-                                             minute="10")
+                        scheTIme = now.hour
+                        @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=scheTIme,minute="10")
                         def seatChangeCanceled():
                             reserveIdQuery = (userId, seat[0], 'prebooked')
                             reserveId = models.retrieveReserveId(reserveIdQuery)
                             if (len(reserveId) != 0):
                                 models.autoDelete(reserveId[0])
-
+                    elif(int(scheTIme)==now and now.minute >= 50):
+                        infoQuery = ('prebooked', 'deactivation', seat[0], userId)
+                        models.updateReservation(infoQuery)
+                        scheTIme = int(scheTIme) + 1
+                        @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=scheTIme,minute="10")
+                        def seatChangeCanceled():
+                            reserveIdQuery = (userId, seat[0], 'prebooked')
+                            reserveId = models.retrieveReserveId(reserveIdQuery)
+                            if (len(reserveId) != 0):
+                                models.autoDelete(reserveId[0])
                     else:
                         @sched.scheduled_job('cron',year=now.year,month=now.month,day=now.day,hour=scheTIme,minute="50")
                         def seatChangePrebooked():
                             infoQuery = ('prebooked','deactivation',seat[0],userId)
                             models.updateReservation(infoQuery)
-
-                        @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=time[0:2],
-                                             minute="10")
+                        @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=time[0:2],minute="10")
                         def seatChangeCanceled():
                             reserveIdQuery = (userId, seat[0], 'prebooked')
                             reserveId = models.retrieveReserveId(reserveIdQuery)
                             if (len(reserveId) != 0):
                                 models.autoDelete(reserveId[0])
-
                     return JsonResponse({'message': 'SUCCESS'}, status=200)
                 else:   return JsonResponse({'message':'이미 예약된 자석 이거나 현재 사용 불가한 자석입니다.'},status=200)
             except: return JsonResponse({'message':'DB_ERR'},status=400)
@@ -262,13 +267,16 @@ def booked(request):
     name = data['name']
     time = data['time']
 
+    if userId==None:
+        return JsonResponse({'message':'WRONG_User'},status=300)
+
     try:
         info = (floor,name,time)
         seat = models.retrieveSeatId(info)
         ReserveInfoQuery = (userId, seat[0],'prebooked')
         reserveId = models.retrieveReserveId(ReserveInfoQuery)
         if reserveId == None:
-            return JsonResponse({'message': 'Wrong reservation'}, status=300)
+            return JsonResponse({'message': 'Wrong reservation'}, status=301)
         else:
             reserveInfo = ('booked','prebooked',seat[0],userId)
             models.updateReservation(reserveInfo)
