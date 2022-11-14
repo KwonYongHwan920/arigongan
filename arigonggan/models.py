@@ -45,7 +45,7 @@ def updateSeatStatus(seatId):
 def insertReservation(reservationQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "insert into reservation (userId, seatId,  status) VALUES (%s,%s,%s);"
+    sql = "insert into Reservation (userId, seatId,  status) VALUES (%s,%s,%s);"
     res = cur.execute(sql,reservationQuery)
     conn.commit()
     conn.close()
@@ -54,7 +54,7 @@ def insertReservation(reservationQuery):
 def updateReservation(reservationQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "update reservation set status=%s where status=%s and seatId=%s and userId = %s;"
+    sql = "update Reservation set status=%s where status=%s and seatId=%s and userId = %s;"
     res = cur.execute(sql,reservationQuery)
     conn.commit()
     conn.close()
@@ -177,7 +177,7 @@ def updateAllSeatActivate():
 def checkChangeList(userId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select floor,name,time,status from seat where seat.id in(select seatId from Reservation where userId=%s and DATEDIFF(created_at,now())<1);"
+    sql = "select floor,name,time,status from Seat where Seat.id in(select seatId from Reservation where userId=%s and DATEDIFF(created_at,now())<1);"
     cur.execute(sql,userId)
     res = cur.fetchall()
     conn.commit()
