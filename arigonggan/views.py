@@ -225,7 +225,7 @@ def autoDelete(request):
             return JsonResponse({'message': 'Wrong reservation'}, status=300)
         else:
             models.autoDelete(reserveId[0])
-            models.deleteSeat(seat[0])
+            models.deleteSeatStatus(seat[0])
             return JsonResponse({'message': 'SUCCESS'}, status=200)
     except:
         return JsonResponse({'message': 'DBERR'}, status=400)
