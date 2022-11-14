@@ -291,6 +291,8 @@ def reserveList(request):
 
     data = json.loads(request.body)
     userId = request.session.get('userId')
+    if userId==None:
+        return JsonResponse({'message':'WRONG_User'},status=300)
     try:
         seats = models.checkChangeList(userId)
         return JsonResponse({'message': 'SUCCESS','res' : seats}, status=200)
