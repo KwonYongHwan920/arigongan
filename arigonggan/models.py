@@ -150,7 +150,7 @@ def retrieveReserv(userId):
 def retrieveSeatById(seatId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "Select name, floor, bookTime From Seat WHERE id=%s;"
+    sql = "Select name, floor, Seat.time From Seat WHERE id=%s;"
     cur.execute(sql,seatId)
     res = cur.fetchone()
     conn.commit()
