@@ -187,7 +187,7 @@ def checkChangeList(userId):
 def updateSeatDisable(time):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "update Seat set status = 'disable' where seat.time=%s;"
+    sql = "update Seat set status = 'disable' where Seat.time=%s;"
     cur.execute(sql,time)
     conn.commit()
     conn.close()
