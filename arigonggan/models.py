@@ -177,7 +177,7 @@ def updateAllSeatActivate():
 def checkChangeList(userId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select status ,seatId ,(select Seat.status from Seat where Seat.id=seatId),(select Seat.floor from Seat where Seat.id=seatId) as seatFloor, (select Seat.name from Seat where Seat.id=seatId) as seatName ,(select Seat.time from Seat where Seat.id=seatId) as seatTime from Reservation where userId=%s;"
+    sql = "select status ,(select Seat.status from Seat where Seat.id=seatId),(select Seat.floor from Seat where Seat.id=seatId) as seatFloor, (select Seat.name from Seat where Seat.id=seatId) as seatName ,(select Seat.time from Seat where Seat.id=seatId) as seatTime from Reservation where userId=%s;"
     cur.execute(sql,userId)
     res = cur.fetchall()
     conn.commit()
