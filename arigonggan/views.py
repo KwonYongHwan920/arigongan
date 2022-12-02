@@ -289,7 +289,6 @@ def booked(request):
 @method_decorator(csrf_exempt, name='dispatch')
 def reserveList(request):
 
-    data = json.loads(request.body)
     userId = request.session.get('userId')
     if userId==None:
         return JsonResponse({'message':'WRONG_User'},status=300)
