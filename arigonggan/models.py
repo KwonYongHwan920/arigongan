@@ -86,7 +86,7 @@ def retrieveSeatId(seatInfoQuery):
 def retrieveReserveId(ReserveInfoQuery):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select id from Reservation where userId=%s and seatId=%s and status=%s and datediff(now(),created_at)<1;"
+    sql = "select id from Reservation where userId=%s and seatId=%s and status=%s and DATE(Reservation.created_at)=DATE(now());"
     cur.execute(sql,ReserveInfoQuery)
     res = cur.fetchone()
     conn.commit()
@@ -177,7 +177,7 @@ def updateAllSeatActivate():
 def checkChangeList(userId):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = "select status ,(select Seat.status from Seat where Seat.id=seatId),(select Seat.floor from Seat where Seat.id=seatId) as seatFloor, (select Seat.name from Seat where Seat.id=seatId) as seatName ,(select Seat.time from Seat where Seat.id=seatId) as seatTime from Reservation where userId=%s;"
+    sql = "select status ,(select Seat.status from Seat where Seat.id=seatId),(select Seat.floor from Seat where Seat.id=seatId) as seatFloor, (select Seat.name from Seat where Seat.id=seatId) as seatName ,(select Seat.time from Seat where Seat.id=seatId) as seatTime from Reservation where userId=%s and DATE(Reservation.created_at)=DATE(now());"
     cur.execute(sql,userId)
     res = cur.fetchall()
     conn.commit()
