@@ -235,6 +235,11 @@ def autoDelete(request):
         else:
             models.autoDelete(reserveId[0])
             models.deleteSeatStatus(seat[0])
+            models.disableUser(userId)
+            @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day+7, hour="00", minute="00")
+            def userActivate():
+                models.activateUser(userId)
+
             return JsonResponse({'message': 'SUCCESS'}, status=200)
     except:
         return JsonResponse({'message': 'DBERR'}, status=400)

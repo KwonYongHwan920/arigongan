@@ -191,3 +191,19 @@ def updateSeatDisable(time):
     cur.execute(sql,time)
     conn.commit()
     conn.close()
+
+def disableUser(userId):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "update User set status = 'disable' where userId=%s;"
+    cur.execute(sql, userId)
+    conn.commit()
+    conn.close()
+
+def activateUser(userId):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "update User set status = 'activate' where userId=%s;"
+    cur.execute(sql, userId)
+    conn.commit()
+    conn.close()
