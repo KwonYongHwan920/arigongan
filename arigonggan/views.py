@@ -141,29 +141,30 @@ def reservation(request):
             nowTime = now.hour
             prebookedTime = str(int(time[0:2])-1)
 
-            # try:
-            seatInfoQuery = (floor, name, time)
-            seat = models.retrieveAvailavleSeat(seatInfoQuery)
+            try:
+                seatInfoQuery = (floor, name, time)
+                seat = models.retrieveAvailavleSeat(seatInfoQuery)
 
-            if (seat==None):
-                return JsonResponse({'message':'이미 예약된 자석 이거나 현재 사용 불가한 자석입니다.'},status=200)
-            else:
-                if(int(prebookedTime)==nowTime and now.minute>=50):
-                    models.updateSeatStatus(seat[0])
-                    reservationQuery = (userId, seat[0], "deactivation")
-                    models.insertReservation(reservationQuery)
-
-                    infoQuery = ('prebooked', 'deactivation', seat[0], userId)
-                    models.updateReservation(infoQuery)
-
-                    @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=resTime,minute="10")
-                    def seatChangeCanceled():
-                        reserveIdQuery = (userId, seat[0], 'prebooked')
-                        reserveId = models.retrieveReserveId(reserveIdQuery)
-                        if (len(reserveId) != 0):
-                            models.autoDelete(reserveId[0])
-
+                if (seat==None):
+                    return JsonResponse({'message':'이미 예약된 자석 이거나 현재 사용 불가한 자석입니다.'},status=200)
                 else:
+                    # if(int(prebookedTime)==nowTime and now.minute>=50):
+                    #     models.updateSeatStatus(seat[0])
+                    #     reservationQuery = (userId, seat[0], "deactivation")
+                    #     models.insertReservation(reservationQuery)
+                    #
+                    #     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
+                    #     models.updateReservation(infoQuery)
+                    #     print(resTime)
+                    #
+                    #     @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=resTime,minute="10")
+                    #     def seatChangeCanceled():
+                    #         reserveIdQuery = (userId, seat[0], 'prebooked')
+                    #         reserveId = models.retrieveReserveId(reserveIdQuery)
+                    #         if (len(reserveId) != 0):
+                    #             models.autoDelete(reserveId[0])
+                    #
+                    # else:
                     @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=prebookedTime,minute="50")
                     def seatChangePrebooked():
                         infoQuery = ('prebooked', 'deactivation', seat[0], userId)
@@ -180,7 +181,7 @@ def reservation(request):
                     reservationQuery = (userId,seat[0],"deactivation")
                     models.insertReservation(reservationQuery)
                 return JsonResponse({'message': 'SUCCESS'}, status=200)
-            # except: return JsonResponse({'message':'DB_ERR'},status=400)
+            except: return JsonResponse({'message':'DB_ERR'},status=400)
 
 # (04) retrieve all seat status
 @method_decorator(csrf_exempt,name='dispatch')
