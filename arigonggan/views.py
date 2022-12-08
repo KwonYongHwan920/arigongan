@@ -126,19 +126,34 @@ def logIn(requset):
 @method_decorator(csrf_exempt,name='dispatch')
 def reservation(request):
     if request.method == 'POST':
+        data = json.loads(request.body)
+        floor = data['floor']
+        name = data['name']
+        time = data['time']
+        timeMinus1 = str(int(time[0:2])-1) + ":00:00"
+        timePlus1 = str(int(time[0:2])+1) + ":00:00"
+
+        if(len(timeMinus1)==7):
+            timeMinus1 = "0"+timeMinus1
+
+        if(len(timePlus1)==7):
+            timePlus1 = "0"+timePlus1
+
 
         # Login Check
         userId = request.session.get('userId')
         userStatus = models.retrieveUserStatus(userId)
+        reservedSeatQuery = (userId,timeMinus1,timePlus1)
+        reservedSeat = models.retriveUserSeat(reservedSeatQuery)
+        print(reservedSeat)
         if userId==None:
             return JsonResponse({'message':'WRONG_User'},status=300)
         elif userStatus[0]=='disable':
             return JsonResponse({'message': 'DENIED_User'}, status=301)
+        elif reservedSeat!=None:
+            return JsonResponse({'message': '연속된 시간으로는 예약할 수 없습니다.'}, status=302)
         else:
-            data = json.loads(request.body)
-            floor = data['floor']
-            name = data['name']
-            time = data['time']
+
 
             resTime = time[0:2]
             nowTime = now.hour

@@ -217,3 +217,13 @@ def retrieveUserStatus(userId):
     conn.commit()
     conn.close()
     return res
+
+def retriveUserSeat(query):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''select id from Reservation where userId = %s and seatId in (select id from Seat where Seat.time in (%s,%s)) and DATE(Reservation.created_at)=DATE(now()) and DATE(Reservation.created_at)=DATE(now()) and status in ("prebooked","booked","deactivation");'''
+    cur.execute(sql, query)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res
