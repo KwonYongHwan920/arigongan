@@ -129,8 +129,11 @@ def reservation(request):
 
         # Login Check
         userId = request.session.get('userId')
+        userStatus = models.retrieveUserStatus(userId)
         if userId==None:
             return JsonResponse({'message':'WRONG_User'},status=300)
+        elif userStatus[0]=='disable':
+            return JsonResponse({'message': 'DENIED_User'}, status=301)
         else:
             data = json.loads(request.body)
             floor = data['floor']

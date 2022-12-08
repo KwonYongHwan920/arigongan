@@ -207,3 +207,13 @@ def activateUser(userId):
     cur.execute(sql, userId)
     conn.commit()
     conn.close()
+
+def retrieveUserStatus(userId):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = "select status from User where userId=%s;"
+    cur.execute(sql, userId)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res
