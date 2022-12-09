@@ -8,75 +8,98 @@ from arigonggan import models
 from django.conf import settings
 from apscheduler.schedulers.background import BackgroundScheduler
 sched = BackgroundScheduler()
-import datetime
-now = datetime.datetime.now()
+from datetime import timedelta,datetime
+now = datetime.now()
 import time
 
-@sched.scheduled_job('cron', hour='09', minute='00', name='disable1')
+@sched.scheduled_job('cron', minute='10', name='disable')
 def seatChangeDisable():
-    stime = "09:00:00"
+    print(now.hour)
+    stime = str(now.hour) + ":00:00"
     models.updateSeatDisable(stime)
     print(stime + " disable complete")
-
-@sched.scheduled_job('cron', hour='10', minute='00', name='disable2')
-def seatChangeDisable():
-    stime = "10:00:00"
-    models.updateSeatDisable(stime)
-    print(stime + " disable complete")
-
-@sched.scheduled_job('cron', hour='11', minute='00', name='disable3')
-def seatChangeDisable():
-    stime = "11:00:00"
-    models.updateSeatDisable(stime)
-    print(stime + " disable complete")
-
-@sched.scheduled_job('cron', hour='12', minute='00', name='disable4')
-def seatChangeDisable():
-    stime = "12:00:00"
-    models.updateSeatDisable(stime)
-    print(stime + " disable complete")
-
-@sched.scheduled_job('cron', hour='13', minute='00', name='disable5')
-def seatChangeDisable():
-    stime = "13:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
-
-
-@sched.scheduled_job('cron', hour='14', minute='00', name='disable6')
-def seatChangeDisable():
-    stime = "14:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
-
-
-@sched.scheduled_job('cron', hour='15', minute='00', name='disable7')
-def seatChangeDisable():
-    stime = "15:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
-
-
-@sched.scheduled_job('cron', hour='16', minute='00', name='disable8')
-def seatChangeDisable():
-    stime = "16:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
-
-
-@sched.scheduled_job('cron', hour='17', minute='00', name='disable9')
-def seatChangeDisable():
-    stime = "17:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
+    models.updateCanceled(stime)
+    userList = models.selectCanceledUser(stime)
+    for user in userList:
+        qurey = (user,now+timedelta(weeks=1))
+        models.insertUserDisable(qurey)
+        models.disableUser(user)
 
 
 
-@sched.scheduled_job('cron', hour='18', minute='00', name='disable10')
-def seatChangeDisable():
-    stime = "18:00:00"
-    models.updateSeatDisable(stime)
-    print("disable complete" + stime)
+
+@sched.scheduled_job('cron', minute='50', name='prebooked')
+def seatChangePrebook():
+    prebookedTime = str(now.hour+1) + ":00:00"
+    models.updatePrebooked(prebookedTime)
+    print(prebookedTime + " prebooked complete")
+
+#
+# @sched.scheduled_job('cron', hour='09', minute='00', name='disable1')
+# def seatChangeDisable():
+#     stime = "09:00:00"
+#     models.updateSeatDisable(stime)
+#     print(stime + " disable complete")
+#
+# @sched.scheduled_job('cron', hour='10', minute='00', name='disable2')
+# def seatChangeDisable():
+#     stime = "10:00:00"
+#     models.updateSeatDisable(stime)
+#     print(stime + " disable complete")
+#
+# @sched.scheduled_job('cron', hour='11', minute='00', name='disable3')
+# def seatChangeDisable():
+#     stime = "11:00:00"
+#     models.updateSeatDisable(stime)
+#     print(stime + " disable complete")
+#
+# @sched.scheduled_job('cron', hour='12', minute='00', name='disable4')
+# def seatChangeDisable():
+#     stime = "12:00:00"
+#     models.updateSeatDisable(stime)
+#     print(stime + " disable complete")
+#
+# @sched.scheduled_job('cron', hour='13', minute='00', name='disable5')
+# def seatChangeDisable():
+#     stime = "13:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
+#
+#
+# @sched.scheduled_job('cron', hour='14', minute='00', name='disable6')
+# def seatChangeDisable():
+#     stime = "14:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
+#
+#
+# @sched.scheduled_job('cron', hour='15', minute='00', name='disable7')
+# def seatChangeDisable():
+#     stime = "15:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
+#
+#
+# @sched.scheduled_job('cron', hour='16', minute='00', name='disable8')
+# def seatChangeDisable():
+#     stime = "16:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
+#
+#
+# @sched.scheduled_job('cron', hour='17', minute='00', name='disable9')
+# def seatChangeDisable():
+#     stime = "17:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
+#
+#
+#
+# @sched.scheduled_job('cron', hour='18', minute='00', name='disable10')
+# def seatChangeDisable():
+#     stime = "18:00:00"
+#     models.updateSeatDisable(stime)
+#     print("disable complete" + stime)
 
 sched.start()
 
@@ -84,6 +107,8 @@ sched.start()
 def seatChangeActivate():
     models.updateAllSeatActivate()
     print("activate complete")
+    models.updateUserActivate()
+    print("user activate complete")
 
 def signup(userId):
     res = models.userInsert(userId)
@@ -143,7 +168,7 @@ def reservation(request):
         # Login Check
         userId = request.session.get('userId')
         userStatus = models.retrieveUserStatus(userId)
-        reservedSeatQuery = (userId,timeMinus1,timePlus1)
+        reservedSeatQuery = (userId,timeMinus1,timePlus1,time)
         reservedSeat = models.retriveUserSeat(reservedSeatQuery)
         print(reservedSeat)
         if userId==None:
@@ -166,18 +191,8 @@ def reservation(request):
                 if (seat==None):
                     return JsonResponse({'message':'이미 예약된 자석 이거나 현재 사용 불가한 자석입니다.'},status=200)
                 else:
-                    @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=prebookedTime,minute="50")
-                    def seatChangePrebooked():
-                        infoQuery = ('prebooked', 'deactivation', seat[0], userId)
-                        models.updateReservation(infoQuery)
-
-                    @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day, hour=resTime,minute="10")
-                    def seatChangeCanceled():
-                        reserveIdQuery = (userId, seat[0], 'prebooked')
-                        reserveId = models.retrieveReserveId(reserveIdQuery)
-                        if (len(reserveId) != 0):
-                            models.autoDelete(reserveId[0])
-
+                    infoQuery = ('prebooked', 'deactivation', seat[0], userId)
+                    models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
                     reservationQuery = (userId,seat[0],"deactivation")
                     models.insertReservation(reservationQuery)

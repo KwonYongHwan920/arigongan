@@ -221,9 +221,52 @@ def retrieveUserStatus(userId):
 def retriveUserSeat(query):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = '''select id from Reservation where userId = %s and seatId in (select id from Seat where Seat.time in (%s,%s)) and DATE(Reservation.created_at)=DATE(now()) and DATE(Reservation.created_at)=DATE(now()) and status in ("prebooked","booked","deactivation");'''
+    sql = '''select id from Reservation where userId = %s and seatId in (select id from Seat where Seat.time in (%s,%s,%s)) and DATE(Reservation.created_at)=DATE(now()) and DATE(Reservation.created_at)=DATE(now()) and status in ("prebooked","booked","deactivation");'''
     cur.execute(sql, query)
     res = cur.fetchone()
     conn.commit()
     conn.close()
     return res
+
+def updatePrebooked(time):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''update Reservation set status ="prebooked" where Reservation.seatId in (select id from Seat where Seat.time = %s) and DATE(Reservation.created_at)=DATE(now()) and Reservation.status = "deactivation"'''
+    cur.execute(sql, time)
+    conn.commit()
+    conn.close()
+
+def updateCanceled(time):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''update Reservation set status ="canceled" where Reservation.seatId in (select id from Seat where Seat.time = %s) and DATE(Reservation.created_at)=DATE(now()) and Reservation.status = "prebooked"'''
+    cur.execute(sql, time)
+    conn.commit()
+    conn.close()
+
+def selectCanceledUser(time):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''select userId from Reservation where Reservation.seatId in (select id from Seat where Seat.time = %s) and DATE(Reservation.created_at)=DATE(now()) and Reservation.status = "canceled";'''
+    cur.execute(sql, time)
+    res = cur.fetchall()
+    conn.commit()
+    conn.close()
+    return res
+
+def insertUserDisable(query):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''insert into userdisable (userId, activateDate) VALUES (%s,%s);'''
+    cur.execute(sql, query)
+    conn.commit()
+    conn.close()
+
+def updateUserActivate():
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''update User set status = 'activate' where userId in (select userId from userdisable where DATE(activateDate)=DATE(NOW()));'''
+    cur.execute(sql)
+    conn.commit()
+    conn.close()
+
