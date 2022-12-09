@@ -239,7 +239,7 @@ def updatePrebooked(time):
 def updateCanceled(time):
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = '''update Reservation set status ="canceled" where Reservation.seatId in (select id from Seat where Seat.time = %s) and DATE(Reservation.created_at)=DATE(now()) and Reservation.status = "prebooked"'''
+    sql = '''select id from Reservation where exists((select id from Seat where Seat.time = %s and seatId=Reservation.seatId)) and DATE(Reservation.created_at)=DATE(now()) and Reservation.status = "prebooked";'''
     cur.execute(sql, time)
     conn.commit()
     conn.close()
