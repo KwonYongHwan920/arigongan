@@ -12,4 +12,5 @@ AYU - goorm
 - mysqlclient
 - pymysql
 - selenium
-- django_apscheduler
+- django-apscheduler
+- django-sslserver
