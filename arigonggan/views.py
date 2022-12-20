@@ -96,7 +96,10 @@ def reservation(request):
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
-                    reservationQuery = (userId,seat[0],"deactivation")
+                    if(now.minute>=50):
+                        reservationQuery = (userId, seat[0], "prebooked")
+                    else:
+                        reservationQuery = (userId,seat[0],"deactivation")
                     models.insertReservation(reservationQuery)
                 return JsonResponse({'message': 'SUCCESS'}, status=200)
             except: return JsonResponse({'message':'DB_ERR'},status=400)
