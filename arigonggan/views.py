@@ -96,7 +96,7 @@ def reservation(request):
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
-                    if(now.minute>=50):
+                    if(now.minute>=50 and now.hour==(int(time[0:2])-1)):
                         reservationQuery = (userId, seat[0], "prebooked")
                     else:
                         reservationQuery = (userId,seat[0],"deactivation")
