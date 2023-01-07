@@ -77,7 +77,7 @@ def reservation(request):
         userStatus = models.retrieveUserStatus(userId)
         reservedSeatQuery = (userId,timeMinus1,timePlus1,time)
         reservedSeat = models.retriveUserSeat(reservedSeatQuery)
-        print(reservedSeat)
+
         if userId==None:
             result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
             return JsonResponse(result,status=300)
@@ -88,16 +88,9 @@ def reservation(request):
             result = {'code': '101', 'result': 'RESERVATION_DENIED', 'message': '연속된 시간으로는 예약할 수 없습니다.'}
             return JsonResponse(result, status=101)
         else:
-
-
-            resTime = time[0:2]
-            nowTime = now.hour
-            prebookedTime = str(int(time[0:2])-1)
-
             try:
                 seatInfoQuery = (floor, name, time)
                 seat = models.retrieveAvailavleSeat(seatInfoQuery)
-
                 if (seat==None):
                     result = {'code': '201', 'result': 'SUCCESS', 'message': '이미 예약된 좌석 이거나 현재 사용 불가한 좌석입니다.'}
                     return JsonResponse(result,status=201)
@@ -105,7 +98,10 @@ def reservation(request):
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
-                    if(now.minute>=50 and now.hour==(int(time[0:2])-1)):
+                    m = now.minute
+                    h = now.hour
+                    print(m,h)
+                    if(m>=50 and h==(int(time[0:2])-1)):
                         reservationQuery = (userId, seat[0], "prebooked")
                     else:
                         reservationQuery = (userId,seat[0],"deactivation")
