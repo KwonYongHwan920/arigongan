@@ -265,7 +265,7 @@ def insertUserDisable(query):
 def updateUserActivate():
     conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
     cur = conn.cursor()
-    sql = '''update User set status = 'activate' where userId in (select userId from userdisable where DATE(activateDate)=DATE(NOW()));'''
+    sql = '''update User set status = 'activate' where userId in (select userId from User where status='disable');'''
     cur.execute(sql)
     conn.commit()
     conn.close()
