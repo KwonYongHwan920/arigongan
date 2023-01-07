@@ -39,15 +39,20 @@ def logIn(requset):
             # session에 userId 추가
             requset.session['userId'] = userId
         except:
-            return JsonResponse({'message':'DB_ERR'},status=400)
-        return JsonResponse({'message': 'SUCCESS'}, status=200)
+            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+            return JsonResponse(result,status=400)
+        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+        return JsonResponse(result, status=200)
 
 # (02) signOut api
     elif requset.method == 'PATCH':
         try:
             del requset.session['userId']
-            return JsonResponse({'message':'SUCCESS'},status=200)
-        except: return JsonResponse({'message':'WRONG_User'},status=300)
+            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+            return JsonResponse(result,status=200)
+        except:
+            result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+            return JsonResponse(result,status=300)
 
 # (03) add Reservation api
 @method_decorator(csrf_exempt,name='dispatch')
@@ -74,11 +79,14 @@ def reservation(request):
         reservedSeat = models.retriveUserSeat(reservedSeatQuery)
         print(reservedSeat)
         if userId==None:
-            return JsonResponse({'message':'WRONG_User'},status=300)
+            result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+            return JsonResponse(result,status=300)
         elif userStatus[0]=='disable':
-            return JsonResponse({'message': 'DENIED_User'}, status=301)
+            result = {'code': '100', 'result': 'ACCESS_DENIED', 'message': '권한이 없는 유저입니다.'}
+            return JsonResponse(result, status=100)
         elif reservedSeat!=None:
-            return JsonResponse({'message': '연속된 시간으로는 예약할 수 없습니다.'}, status=302)
+            result = {'code': '101', 'result': 'RESERVATION_DENIED', 'message': '연속된 시간으로는 예약할 수 없습니다.'}
+            return JsonResponse(result, status=101)
         else:
 
 
@@ -91,7 +99,8 @@ def reservation(request):
                 seat = models.retrieveAvailavleSeat(seatInfoQuery)
 
                 if (seat==None):
-                    return JsonResponse({'message':'이미 예약된 자석 이거나 현재 사용 불가한 자석입니다.'},status=200)
+                    result = {'code': '201', 'result': 'SUCCESS', 'message': '이미 예약된 좌석 이거나 현재 사용 불가한 좌석입니다.'}
+                    return JsonResponse(result,status=201)
                 else:
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
@@ -101,23 +110,31 @@ def reservation(request):
                     else:
                         reservationQuery = (userId,seat[0],"deactivation")
                     models.insertReservation(reservationQuery)
-                return JsonResponse({'message': 'SUCCESS'}, status=200)
-            except: return JsonResponse({'message':'DB_ERR'},status=400)
+                    result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+                return JsonResponse(result, status=200)
+
+            except:
+                result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+                return JsonResponse(result,status=400)
 
 # (04) retrieve all seat status
 @method_decorator(csrf_exempt,name='dispatch')
 def seatList(requset):
     try:
         res = models.retrieveAllSeatStatus()
-        return JsonResponse({'message': 'SUCCESS','res':res}, status=200)
-    except: return JsonResponse({'message':'DB_ERR'},status=400)
+        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
+        return JsonResponse(result, status=200)
+    except:
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result,status=400)
 
 # (05) delete Reservation api
 @method_decorator(csrf_exempt, name='dispatch')
 def delete(request):
     userId = request.session.get('userId')
     if userId==None:
-        return JsonResponse({'message':'WRONG_User'},status=300)
+        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+        return JsonResponse(result,status=300)
     else:
         data = json.loads(request.body)
         floor = data['floor']
@@ -129,13 +146,16 @@ def delete(request):
             ReserveInfoQuery = (userId,seat[0])
             reserveId = models.retrievedeleteId(ReserveInfoQuery)
             if reserveId == None:
-                return JsonResponse({'message': 'Wrong reservation'}, status=301)
+                result = {'code': '301', 'result': 'WRONG_RESERVATION', 'message': '예약 정보 확인에 실패하였습니다.'}
+                return JsonResponse(result, status=301)
             else:
                 models.deleteReservation(reserveId[0])
                 models.deleteSeatStatus(seat[0])
-                return JsonResponse({'message': 'SUCCESS'}, status=200)
+                result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+                return JsonResponse(result, status=200)
         except:
-            return JsonResponse({'message': 'DBERR'}, status=400)
+            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+            return JsonResponse(result, status=400)
 
 # (06) auto delete Reservation api
 @method_decorator(csrf_exempt, name='dispatch')
@@ -152,7 +172,8 @@ def autoDelete(request):
         ReserveInfoQuery = (userId, seat[0])
         reserveId = models.retrievedeleteId(ReserveInfoQuery)
         if reserveId == None:
-            return JsonResponse({'message': 'Wrong reservation'}, status=300)
+            result = {'code': '301', 'result': 'WRONG_RESERVATION', 'message': '예약 정보 확인에 실패하였습니다.'}
+            return JsonResponse(result, status=301)
         else:
             models.autoDelete(reserveId[0])
             models.deleteSeatStatus(seat[0])
@@ -161,21 +182,25 @@ def autoDelete(request):
             def userActivate():
                 models.activateUser(userId)
 
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
+            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+            return JsonResponse(result, status=200)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
 
 # (07) Retrieve User Reservation List
 @method_decorator(csrf_exempt, name='dispatch')
 def userReservation(request):
     userId = request.session.get('userId')
     if userId==None:
-        return JsonResponse({'message':'WRONG_User'},status=300)
+        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+        return JsonResponse(result,status=300)
     else:
         try:
             reservationList = models.retrieveReserv(userId)
             if len(reservationList) == 0:
-                return JsonResponse({'message': '예약 내역이 없습니다'}, status=200)
+                result = {'code': '202', 'result': 'SUCCESS', 'message': '예약 내역이 없습니다.'}
+                return JsonResponse(result, status=202)
             else:
                 resLIst = []
                 i=0
@@ -184,9 +209,11 @@ def userReservation(request):
                     tmp = (reservationList[i]+seatInfo)[1:]
                     i+=1;
                     resLIst.append(tmp)
-                return JsonResponse({'message': 'SUCCESS','res':resLIst}, status=200)
+                result = {'code': '200', 'result': 'SUCCESS', 'message': '성공', 'res': resLIst}
+                return JsonResponse(result, status=200)
         except:
-            return JsonResponse({'message': 'DBERR'}, status=400)
+            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+            return JsonResponse(result, status=400)
 
 # (06) auto delete Reservation api
 @method_decorator(csrf_exempt, name='dispatch')
@@ -198,7 +225,8 @@ def booked(request):
     time = data['time']
 
     if userId==None:
-        return JsonResponse({'message':'WRONG_User'},status=300)
+        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+        return JsonResponse(result,status=300)
 
     try:
         info = (floor,name,time)
@@ -210,10 +238,11 @@ def booked(request):
         else:
             reserveInfo = ('booked','prebooked',seat[0],userId)
             models.updateReservation(reserveInfo)
-
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
+            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+            return JsonResponse(result, status=200)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
 
 # (06) auto delete Reservation api
 @method_decorator(csrf_exempt, name='dispatch')
@@ -221,13 +250,15 @@ def reserveList(request):
 
     userId = request.session.get('userId')
     if userId==None:
-        return JsonResponse({'message':'WRONG_User'},status=300)
+        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
+        return JsonResponse(result,status=300)
     try:
         seats = models.checkChangeList(userId)
-        return JsonResponse({'message': 'SUCCESS','res' : seats}, status=200)
+        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':seats}
+        return JsonResponse(result, status=200)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
-
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
 
 # (07) disalble seat
 @method_decorator(csrf_exempt, name='dispatch')
@@ -235,9 +266,11 @@ def disableSeat(request):
     try:
         models.updateAllSeatDisable()
         res = models.retrieveAllSeatStatus()
-        return JsonResponse({'message': 'SUCCESS','res':res}, status=200)
+        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
+        return JsonResponse(result, status=200)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
 
 # (08) activate seat
 @method_decorator(csrf_exempt, name='dispatch')
@@ -245,9 +278,11 @@ def activateSeat(request):
     try:
         models.updateAllSeatActivate()
         res = models.retrieveAllSeatStatus()
-        return JsonResponse({'message': 'SUCCESS','res':res}, status=200)
+        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
+        return JsonResponse(result, status=200)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
 
 # (09) activate User
 @method_decorator(csrf_exempt, name='dispatch')
@@ -257,8 +292,11 @@ def activateUser(request):
         userId = request.session.get('userId')
         if(userId==2017E7418 or userId==2019E7331):
             models.activateUser(userId)
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
+            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
+            return JsonResponse(result, status=200)
         else:
-            return JsonResponse({'message': 'NO AUTHORITY'}, status=300)
+            result = {'code': '100', 'result': 'ACCESS_DENIED', 'message': '권한이 없는 유저입니다.'}
+            return JsonResponse(result, status=100)
     except:
-        return JsonResponse({'message': 'DBERR'}, status=400)
+        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
+        return JsonResponse(result, status=400)
