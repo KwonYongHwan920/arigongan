@@ -11,6 +11,7 @@ sched = BackgroundScheduler()
 from datetime import timedelta,datetime
 now = datetime.now()
 import time
+kstDatetime = datetime.utcnow() + timedelta(hours=9)
 
 def signup(userId):
     res = models.userInsert(userId)
@@ -98,8 +99,8 @@ def reservation(request):
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
-                    m = now.minute
-                    h = now.hour
+                    m = kstDatetime.minute
+                    h = kstDatetime.hour
                     print(m,h)
                     if(m>=50 and h==(int(time[0:2])-1)):
                         reservationQuery = (userId, seat[0], "prebooked")
