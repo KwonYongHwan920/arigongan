@@ -9,13 +9,7 @@ from django.conf import settings
 from apscheduler.schedulers.background import BackgroundScheduler
 sched = BackgroundScheduler()
 from datetime import timedelta,datetime
-now = datetime.now()
 import time
-kstDatetime = datetime.utcnow() + timedelta(hours=9)
-
-def getDatetime():
-    thisTime = datetime.now()
-    return thisTime
 
 def signup(userId):
     res = models.userInsert(userId)
@@ -103,9 +97,8 @@ def reservation(request):
                     infoQuery = ('prebooked', 'deactivation', seat[0], userId)
                     models.updateReservation(infoQuery)
                     models.updateSeatStatus(seat[0])
-                    h = getDatetime().hour
-                    m = getDatetime().minute
-                    print(m,h)
+                    h = datetime.now().hour
+                    m = datetime.now().minute
                     if(m>=50 and h==(int(time[0:2])-1)):
                         reservationQuery = (userId, seat[0], "prebooked")
                     else:
@@ -177,11 +170,7 @@ def autoDelete(request):
             return JsonResponse(result, status=301)
         else:
             models.autoDelete(reserveId[0])
-            models.deleteSeatStatus(seat[0])
             models.disableUser(userId)
-            @sched.scheduled_job('cron', year=now.year, month=now.month, day=now.day+7, hour="00", minute="00")
-            def userActivate():
-                models.activateUser(userId)
 
             result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
             return JsonResponse(result, status=200)
@@ -285,19 +274,3 @@ def activateSeat(request):
         result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
         return JsonResponse(result, status=400)
 
-# (09) activate User
-@method_decorator(csrf_exempt, name='dispatch')
-def activateUser(request):
-    try:
-        data = json.loads(request.body)
-        userId = request.session.get('userId')
-        if(userId==2017E7418 or userId==2019E7331):
-            models.activateUser(userId)
-            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-            return JsonResponse(result, status=200)
-        else:
-            result = {'code': '100', 'result': 'ACCESS_DENIED', 'message': '권한이 없는 유저입니다.'}
-            return JsonResponse(result, status=100)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
