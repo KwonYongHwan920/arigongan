@@ -270,3 +270,12 @@ def updateUserActivate():
     conn.commit()
     conn.close()
 
+def getReservationStatus(id):
+    conn = pymysql.connect(host=DBHOST, user=DBUSER, password=DBPWD, db=DB, charset='utf8')
+    cur = conn.cursor()
+    sql = '''select status from Reservation where id = %s'''
+    cur.execute(sql,id)
+    res = cur.fetchone()
+    conn.commit()
+    conn.close()
+    return res

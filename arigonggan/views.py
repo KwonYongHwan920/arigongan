@@ -145,6 +145,10 @@ def delete(request):
             else:
                 models.deleteReservation(reserveId[0])
                 models.deleteSeatStatus(seat[0])
+                afterDeleteStatus = models.getReservationStatus(reserveId[0])
+                print(afterDeleteStatus)
+                if(afterDeleteStatus[0]!="delete"):
+                    print(afterDeleteStatus,reserveId[0])
                 result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
                 return JsonResponse(result, status=200)
         except:
