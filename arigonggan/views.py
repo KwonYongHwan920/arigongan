@@ -1,281 +1,308 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404,_get_queryset
 from django.http import JsonResponse,HttpResponse
-import pymysql
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from arigonggan import models
-from django.conf import settings
 from apscheduler.schedulers.background import BackgroundScheduler
 sched = BackgroundScheduler()
-from datetime import timedelta,datetime
-import time
+from django.contrib.auth import authenticate, login
+from .models import User,Seat,Reservation
 
-def signup(userId):
-    res = models.userInsert(userId)
-    return 0
+from config import baseResponse
+from django.db import transaction
+import datetime
+from django.utils import timezone
 
-# (00) session check api
+
+def signUp(userId):
+    user = User(userId=userId)
+    user.save()
+
+def getMinMax():
+    minMax = {
+        "today_min" : datetime.datetime.combine(datetime.datetime.today().date(), datetime.datetime.today().time().min),
+        "today_max" : datetime.datetime.combine(datetime.datetime.today().date(), datetime.datetime.today().time().max)
+    }
+    return minMax
+
+@transaction.atomic()
 @method_decorator(csrf_exempt,name='dispatch')
-def index(request):
-    if request.method == 'GET':
-        userId = request.session.get('userId')
-        return HttpResponse(userId)
-
-# (01) signUp & signIn api
-@method_decorator(csrf_exempt,name='dispatch')
-def logIn(requset):
-    if requset.method == 'POST':
+def signIn(request):
+    if request.method == 'POST':
         try:
-            data = json.loads(requset.body)
+            data = json.loads(request.body)
             userId = data['userId']
-
-            # 로그인 전적이 있는 지 확인
-            res = models.selectUser(userId)
-            if (res==None):
-                # 회원가입
-                signup(userId)
-            # session에 userId 추가
-            requset.session['userId'] = userId
+            try:
+                get_object_or_404(User,userId=userId)
+            except:
+                signUp(userId)
+            request.session['userId'] = userId
+            return baseResponse.SUCCESS
         except:
-            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-            return JsonResponse(result,status=400)
-        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-        return JsonResponse(result, status=200)
+            return baseResponse.DB_ERR
 
-# (02) signOut api
-    elif requset.method == 'PATCH':
+    elif request.method == 'PATCH':
         try:
-            del requset.session['userId']
-            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-            return JsonResponse(result,status=200)
+            del request.session['userId']
+            return baseResponse.SUCCESS
         except:
-            result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-            return JsonResponse(result,status=300)
+            return baseResponse.USER_ERR
 
-# (03) add Reservation api
+@transaction.atomic()
 @method_decorator(csrf_exempt,name='dispatch')
-def reservation(request):
+def postReservation(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         floor = data['floor']
         name = data['name']
         time = data['time']
-        timeMinus1 = str(int(time[0:2])-1) + ":00:00"
-        timePlus1 = str(int(time[0:2])+1) + ":00:00"
+        userId = request.session.get('userId')
 
+        if(userId==None):
+            return baseResponse.USER_ERR
+
+        timeMinus1 = str(int(time[0:2]) - 1) + ":00:00"
+        timePlus1 = str(int(time[0:2]) + 1) + ":00:00"
         if(len(timeMinus1)==7):
             timeMinus1 = "0"+timeMinus1
-
         if(len(timePlus1)==7):
             timePlus1 = "0"+timePlus1
 
-
-        # Login Check
-        userId = request.session.get('userId')
-        userStatus = models.retrieveUserStatus(userId)
-        reservedSeatQuery = (userId,timeMinus1,timePlus1,time)
-        reservedSeat = models.retriveUserSeat(reservedSeatQuery)
-
-        if userId==None:
-            result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-            return JsonResponse(result,status=300)
-        elif userStatus[0]=='disable':
-            result = {'code': '100', 'result': 'ACCESS_DENIED', 'message': '권한이 없는 유저입니다.'}
-            return JsonResponse(result, status=100)
-        elif reservedSeat!=None:
-            result = {'code': '101', 'result': 'RESERVATION_DENIED', 'message': '연속된 시간으로는 예약할 수 없습니다.'}
-            return JsonResponse(result, status=101)
-        else:
-            try:
-                seatInfoQuery = (floor, name, time)
-                seat = models.retrieveAvailavleSeat(seatInfoQuery)
-                if (seat==None):
-                    result = {'code': '201', 'result': 'SUCCESS', 'message': '이미 예약된 좌석 이거나 현재 사용 불가한 좌석입니다.'}
-                    return JsonResponse(result,status=201)
-                else:
-                    infoQuery = ('prebooked', 'deactivation', seat[0], userId)
-                    models.updateReservation(infoQuery)
-                    models.updateSeatStatus(seat[0])
-                    h = datetime.now().hour
-                    m = datetime.now().minute
-                    if(m>=50 and h==(int(time[0:2])-1)):
-                        reservationQuery = (userId, seat[0], "prebooked")
-                    else:
-                        reservationQuery = (userId,seat[0],"deactivation")
-                    models.insertReservation(reservationQuery)
-                    result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-                return JsonResponse(result, status=200)
-
-            except:
-                result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-                return JsonResponse(result,status=400)
-
-# (04) retrieve all seat status
-@method_decorator(csrf_exempt,name='dispatch')
-def seatList(requset):
-    try:
-        res = models.retrieveAllSeatStatus()
-        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
-        return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result,status=400)
-
-# (05) delete Reservation api
-@method_decorator(csrf_exempt, name='dispatch')
-def delete(request):
-    userId = request.session.get('userId')
-    if userId==None:
-        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-        return JsonResponse(result,status=300)
-    else:
-        data = json.loads(request.body)
-        floor = data['floor']
-        name = data['name']
-        time = data['time']
-        seatInfo = (floor,name,time)
+        # 유저 status 확인, 좌석 status 확인
         try:
-            seat = models.retrieveSeatId(seatInfo)
-            ReserveInfoQuery = (userId,seat[0])
-            reserveId = models.retrievedeleteId(ReserveInfoQuery)
-            if reserveId == None:
-                result = {'code': '301', 'result': 'WRONG_RESERVATION', 'message': '예약 정보 확인에 실패하였습니다.'}
-                return JsonResponse(result, status=301)
-            else:
-                models.deleteReservation(reserveId[0])
-                models.deleteSeatStatus(seat[0])
-                afterDeleteStatus = models.getReservationStatus(reserveId[0])
-                if(afterDeleteStatus[0]!="delete"):
-                    models.deleteReservation(reserveId[0])
-                    models.deleteSeatStatus(seat[0])
-                    print(afterDeleteStatus,reserveId[0])
-                result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-                return JsonResponse(result, status=200)
+            user = get_object_or_404(User, userId=userId)
+            seat = get_object_or_404(Seat, floor=floor, name=name, time=time)
         except:
-            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-            return JsonResponse(result, status=400)
+            return baseResponse.DB_ERR
 
-# (06) auto delete Reservation api
+        if(user.status=='disable'):
+            return baseResponse.NO_AUTH
+        elif(seat.status=='disable'or seat.status=='booked'):
+            return baseResponse.DISABLE_SEAT
+
+        #  유저 전후 1시간 예약 건 확인
+        today_min = datetime.datetime.combine(timezone.now().date(), datetime.datetime.today().time().min)
+        today_max = datetime.datetime.combine(timezone.now().date(), datetime.datetime.today().time().max)
+        seat1 = Seat.objects.filter(time=timeMinus1)
+        seat2 = Seat.objects.filter(time=timePlus1)
+        resList = Reservation.objects.filter(userId=user,created_at__range =(today_min,today_max),seatId__in=seat2|seat1)
+        if len(resList)!=0:
+            return baseResponse.DISABLE_RESERVATION
+
+        # Reservation 데이터 추가 Seat status - > booked 변경
+        if(timezone.now().hour==(int(time[0:2])-1) and timezone.now().minute>=50):
+            reservation = Reservation(status="prebooked", created_at=timezone.now(), seatId=seat,
+                                      userId=user)
+            reservation.save()
+        else:
+            reservation = Reservation(status="deactivation", created_at=timezone.now(), seatId=seat,
+                                      userId=user)
+            reservation.save()
+        seat.status="booked"
+        seat.save()
+
+        return baseResponse.SUCCESS
+
+@transaction.atomic()
+@method_decorator(csrf_exempt,name='dispatch')
+def seatStatusList(request):
+    if request.method=='GET':
+
+        try:
+            seatList = Seat.objects.all()
+            res = []
+            for seat in seatList:
+                seatInfo = []
+                seatInfo.append(seat.name)
+                seatInfo.append(seat.floor)
+                seatInfo.append("P0DT"+ str(seat.time)[0:2] + "H00M00S")
+                seatInfo.append(seat.status)
+                res.append(seatInfo)
+
+            baseResponse.setRes(res)
+            return baseResponse.SUCCESS_DICT
+        except: return baseResponse.DB_ERR
+
+@transaction.atomic()
+@method_decorator(csrf_exempt,name='dispatch')
+def delete(request):
+
+    if request.method=="POST":
+        # 유저 확인
+        userId = request.session.get('userId')
+        if (userId == None):
+            return baseResponse.USER_ERR
+
+        else:
+
+            # 좌석 찾기
+            data = json.loads(request.body)
+            floor = data['floor']
+            name = data['name']
+            time = data['time']
+            try:
+                user = get_object_or_404(User,userId=userId)
+                seat = get_object_or_404(Seat, floor=floor, name=name, time=time)
+            except:
+                return baseResponse.DB_ERR
+
+            reservation = Reservation.objects.filter(userId=user,seatId=seat,status__in=['deactivation','prebooked'],created_at__range =(getMinMax()["today_min"],getMinMax()["today_max"]))
+            if len(reservation)!=1:
+                return baseResponse.WRONG_RESERVATION
+
+            # Reservation 삭제, Seat activate
+            reservation.update(status="delete")
+            seat.status = "activate"
+            seat.save()
+            return baseResponse.SUCCESS
+
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
 def autoDelete(request):
+    if request.method=="POST":
+        try:
+            data = json.loads(request.body)
+            userId = data['userId']
+            floor = data['floor']
+            name = data['name']
+            time = data['time']
 
-    data = json.loads(request.body)
-    userId = data['userId']
-    floor = data['floor']
-    name = data['name']
-    time = data['time']
-    try:
-        queryInfo = (floor, name, time)
-        seat = models.retrieveSeatId(queryInfo)
-        ReserveInfoQuery = (userId, seat[0])
-        reserveId = models.retrievedeleteId(ReserveInfoQuery)
-        if reserveId == None:
-            result = {'code': '301', 'result': 'WRONG_RESERVATION', 'message': '예약 정보 확인에 실패하였습니다.'}
-            return JsonResponse(result, status=301)
-        else:
-            models.autoDelete(reserveId[0])
-            models.disableUser(userId)
+            # Seat, User, Reservation 정보 검색
+            try:
+                user = get_object_or_404(User, userId=userId)
+                seat = get_object_or_404(Seat, floor=floor, name=name, time=time)
+                reservation = get_object_or_404(Reservation,userId=user,seatId=seat,status__in=['deactivation','prebooked'],created_at__range =(getMinMax()["today_min"],getMinMax()["today_max"]))
+            except:
+                return baseResponse.WRONG_RESERVATION
 
-            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-            return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
+            # Cancel Reservation , Disable User
+            reservation.status = "canceled"
+            user.status = "disable"
+            reservation.save()
+            user.save()
+            return baseResponse.SUCCESS
+        except:
+            return baseResponse.DB_ERR
 
-# (07) Retrieve User Reservation List
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
 def userReservation(request):
-    userId = request.session.get('userId')
-    if userId==None:
-        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-        return JsonResponse(result,status=300)
-    else:
+    if request.method=="GET":
         try:
-            reservationList = models.retrieveReserv(userId)
-            if len(reservationList) == 0:
-                result = {'code': '202', 'result': 'SUCCESS', 'message': '예약 내역이 없습니다.'}
-                return JsonResponse(result, status=202)
-            else:
-                resLIst = []
-                i=0
-                for item in reservationList:
-                    seatInfo = models.retrieveSeatById(reservationList[i][0])
-                    tmp = (reservationList[i]+seatInfo)[1:]
-                    i+=1;
-                    resLIst.append(tmp)
-                result = {'code': '200', 'result': 'SUCCESS', 'message': '성공', 'res': resLIst}
-                return JsonResponse(result, status=200)
-        except:
-            result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-            return JsonResponse(result, status=400)
 
-# (06) auto delete Reservation api
+            # 유저 확인
+            userId = request.session.get('userId')
+            if (userId == None):
+                return baseResponse.USER_ERR
+            else:
+                try:
+                    user = get_object_or_404(User,userId = userId)
+                except: return baseResponse.DB_ERR
+
+                reservationList = Reservation.objects.filter(userId=user)
+
+                result = []
+                for reservation in reservationList:
+                    seat = Seat.objects.filter(id=reservation.seatId.id)
+                    info = []
+                    info.append(reservation.status)
+                    info.append(reservation.created_at)
+                    info.append(seat[0].name)
+                    info.append(seat[0].floor)
+                    info.append("P0DT" + str(seat[0].time)[0:2] + "H00M00S")
+                    result.append(info)
+                baseResponse.setRes(result)
+
+                return baseResponse.SUCCESS_DICT
+        except:
+            return baseResponse.DB_ERR
+
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
 def booked(request):
-    data = json.loads(request.body)
-    userId = request.session.get('userId')
-    floor = data['floor']
-    name = data['name']
-    time = data['time']
+    if request.method=="POST":
+        try:
+            data = json.loads(request.body)
+            floor = data['floor']
+            name = data['name']
+            time = data['time']
 
-    if userId==None:
-        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-        return JsonResponse(result,status=300)
+            # 유저 확인
+            userId = request.session.get('userId')
+            if (userId == None):
+                return baseResponse.USER_ERR
+            else:
+                try:
+                    user = get_object_or_404(User, userId=userId)
+                except:
+                    return baseResponse.DB_ERR
 
-    try:
-        info = (floor,name,time)
-        seat = models.retrieveSeatId(info)
-        ReserveInfoQuery = (userId, seat[0],'prebooked')
-        reserveId = models.retrieveReserveId(ReserveInfoQuery)
-        if reserveId == None:
-            return JsonResponse({'message': 'Wrong reservation'}, status=301)
-        else:
-            reserveInfo = ('booked','prebooked',seat[0],userId)
-            models.updateReservation(reserveInfo)
-            result = {'code': '200', 'result': 'SUCCESS', 'message': '성공'}
-            return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
+            # 좌석 확인
+            seat = Seat.objects.filter(name=name,floor=floor,time = time)
+            if len(seat)==0:
+                return baseResponse.WRONG_RESERVATION
 
-# (06) auto delete Reservation api
+            # Reservation 확인
+            try:
+                reservation = get_object_or_404(Reservation,seatId=seat[0],userId=user,status='prebooked',created_at__range =(getMinMax()["today_min"],getMinMax()["today_max"]))
+            except: return baseResponse.WRONG_RESERVATION
+
+            # Reservation 상태 변경
+            reservation.status="booked"
+            reservation.save()
+            return baseResponse.SUCCESS
+        except: return baseResponse.DB_ERR
+
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
 def reserveList(request):
+    if request.method == "GET":
 
-    userId = request.session.get('userId')
-    if userId==None:
-        result = {'code': '300', 'result': 'WRONG_USER', 'message': '유저 확인에 실패하였습니다.'}
-        return JsonResponse(result,status=300)
-    try:
-        seats = models.checkChangeList(userId)
-        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':seats}
-        return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
+        try:
 
-# (07) disalble seat
+            # 유저 확인
+            userId = request.session.get('userId')
+            if (userId == None):
+                return baseResponse.USER_ERR
+            else:
+                try:
+                    user = get_object_or_404(User, userId=userId)
+                except:
+                    return baseResponse.DB_ERR
+
+            reservationList = Reservation.objects.filter(userId=user,created_at__range=(getMinMax()["today_min"],getMinMax()["today_max"]))
+
+            result = []
+            for reservation in reservationList:
+                seat = Seat.objects.filter(id=reservation.seatId.id)
+                info = []
+                info.append(reservation.status)
+                info.append(seat[0].status)
+                info.append(seat[0].floor)
+                info.append(seat[0].name)
+                info.append("P0DT"+ str(seat[0].time)[0:2] + "H00M00S")
+                result.append(info)
+            baseResponse.setRes(result)
+
+            return baseResponse.SUCCESS_DICT
+        except: return baseResponse.DB_ERR
+
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
-def disableSeat(request):
-    try:
-        models.updateAllSeatDisable()
-        res = models.retrieveAllSeatStatus()
-        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
-        return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
+def allSeatDisable(request):
+    if request.method == "POST":
+        try:
+            seatList = Seat.objects.all()
+            seatList.update(status='disable')
+            return baseResponse.SUCCESS
+        except: return baseResponse.DB_ERR
 
-# (08) activate seat
+@transaction.atomic()
 @method_decorator(csrf_exempt, name='dispatch')
-def activateSeat(request):
-    try:
-        models.updateAllSeatActivate()
-        res = models.retrieveAllSeatStatus()
-        result = {'code': '200', 'result': 'SUCCESS', 'message': '성공','res':res}
-        return JsonResponse(result, status=200)
-    except:
-        result = {'code': '400', 'result': 'DB_ERR', 'message': '데이터 베이스 오류'}
-        return JsonResponse(result, status=400)
-
+def allSeatActivate(request):
+    if request.method == "POST":
+        try:
+            seatList = Seat.objects.all()
+            seatList.update(status='activate')
+            return baseResponse.SUCCESS
+        except: return baseResponse.DB_ERR

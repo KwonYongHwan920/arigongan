@@ -8,16 +8,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import views as auth_views
 
 app_name = 'arigonggan'
-urlpatterns = [
-    path('', views.index),
-    path('logIn', views.logIn),
-    path('reservation', views.reservation),
-    path('all', views.seatList),
+urlpatterns=[
+    path('logIn',views.signIn),
+    path('reservation',views.postReservation),
+    path('all',views.seatStatusList),
     path('delete', views.delete),
     path('auto-delete', views.autoDelete),
     path('user-reservation', views.userReservation),
-    path('disable',views.disableSeat),
-    path('activate',views.activateSeat),
     path('booked', views.booked),
-    path('reservationList',views.reserveList),
+    path('reservationList', views.reserveList),
+    path('disable', views.allSeatDisable),
+    path('activate',views.allSeatActivate),
 ]

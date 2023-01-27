@@ -6,3 +6,5 @@ arigonggan/migrations
 django.crt
 django.key
 manager
+supervisor/migrations
+Reservation.sql
