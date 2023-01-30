@@ -10,6 +10,7 @@ from .models import User,Seat,Reservation
 
 from config import baseResponse
 from django.db import transaction
+from django.db.models import Q
 import datetime
 from django.utils import timezone
 
@@ -85,7 +86,7 @@ def postReservation(request):
         today_max = datetime.datetime.combine(timezone.now().date(), datetime.datetime.today().time().max)
         seat1 = Seat.objects.filter(time=timeMinus1)
         seat2 = Seat.objects.filter(time=timePlus1)
-        resList = Reservation.objects.filter(userId=user,created_at__range =(today_min,today_max),seatId__in=seat2|seat1)
+        resList = Reservation.objects.filter(userId=user,created_at__range =(today_min,today_max),seatId__in=seat2|seat1,status__in=['prebooked','booked','deactivation'])
         if len(resList)!=0:
             return baseResponse.DISABLE_RESERVATION
 
