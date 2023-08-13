@@ -72,3 +72,7 @@ picture
 
 ![KakaoTalk_20220921_085614026](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/4faaa68b-44ef-466e-bd89-61f7c90fbb72) ![KakaoTalk_20220921_085614026_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/b23ef0ed-dac4-4419-a486-397898a8f2ef)
 
+
+>Logout
+
+![KakaoTalk_20220921_085633734](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/d3c76b0a-a3dd-488c-a406-773e16d800bd) ![KakaoTalk_20220921_085633734_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/8d2829e6-596e-4669-8ad6-80207772253c)
