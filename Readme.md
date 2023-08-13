@@ -13,3 +13,5 @@ AYU - goorm
 - pymysql
 - selenium
 - django_apscheduler
+
+> picture
