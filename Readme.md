@@ -36,4 +36,4 @@ picture
 
 >Reservation time
 
-![KakaoTalk_20220921_085226713](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/568cc041-1ae7-46fc-83bf-a059dcdb210b)![KakaoTalk_20220921_085226713_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/462df0e1-5801-40a3-a0e6-63f64d37f457)![KakaoTalk_20220921_085226713_02](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/59425305-5204-44d6-9030-44ef9352f7d7)
+![KakaoTalk_20220921_085226713](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/568cc041-1ae7-46fc-83bf-a059dcdb210b) ![KakaoTalk_20220921_085226713_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/462df0e1-5801-40a3-a0e6-63f64d37f457) ![KakaoTalk_20220921_085226713_02](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/59425305-5204-44d6-9030-44ef9352f7d7)
