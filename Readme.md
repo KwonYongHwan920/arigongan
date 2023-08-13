@@ -46,3 +46,26 @@ picture
 >Reservation location
 
 ![KakaoTalk_20220921_085238353](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/f40bb309-f683-4088-a8f3-d12974d00091) ![KakaoTalk_20220921_085253388](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/0f98b872-b0ca-44a1-bb30-e9f9fc9bcd08) ![KakaoTalk_20220921_085253388_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/24e0bd69-cad1-4cf9-bff4-710e7c758f71) ![KakaoTalk_20220921_085253388_03](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/46801d6d-3c3d-4bb9-8db4-953d02718557)
+
+
+>Reservation information
+
+![KakaoTalk_20220921_085451395_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/1417b226-b1e2-437a-b67f-fbcae20a9671) ![KakaoTalk_20220921_085500292_02](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/43e2df52-1612-42df-8de4-c223a8aa2e40) ![KakaoTalk_20220921_085509255_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/6277f7dd-f0d1-48ee-8ea9-7b5424d79dc4) ![KakaoTalk_20220921_085518546_02](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/004f6087-1a3c-45fc-91d1-684b47294894)
+
+
+>Notification
+
+![KakaoTalk_20220921_085535541_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/cbfad430-f381-4cef-99c2-be6a53ff68a1)
+
+
+>Rules
+
+![KakaoTalk_20220921_085543946_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/bbbb2d1e-cae6-4e19-80d0-bc0a652c590b)
+
+
+>Q&A
+
+![KakaoTalk_20220921_085552186](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/7a3a761f-2fcc-45c1-ac4e-3ac35aa925cf)
+![KakaoTalk_20220921_085552186_01](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/4475166a-7eb4-495b-9a53-4da016181e4c)
+![KakaoTalk_20220921_085552186_02](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/3261aef9-5faf-427e-8909-3ed13e95aeb9)
+![KakaoTalk_20220921_085552186_03](https://github.com/KwonYongHwan920/arigonggan/assets/105268804/8d833cb2-ff2b-42ed-ba8e-538a7a9fbad9)
